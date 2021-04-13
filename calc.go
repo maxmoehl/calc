@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 func main() {
@@ -20,17 +22,23 @@ func main() {
 	var o operation
 	o, err = parse(tokens)
 	if err != nil {
-		fmt.Println(err.Error())
+		color.Red(err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("Result: %f\n", o.eval())
+	var res float64
+	res, err = o.eval()
+	if err != nil {
+		color.Red(err.Error())
+		os.Exit(1)
+	}
+	fmt.Printf("Result: %f\n", res)
 }
 
 func printToken(t token) {
 	switch t.Type() {
 	case typeOperator:
-		fmt.Printf("%s\t%s\n", t.Type(), string(t.Value().(rune)))
+		fmt.Printf("\t%s\t%s\n", t.Type(), string(t.Value().(rune)))
 	case typeLiteral:
-		fmt.Printf("%s\t%f\n", t.Type(), t.Value().(float64))
+		fmt.Printf("\t%s\t%f\n", t.Type(), t.Value().(float64))
 	}
 }

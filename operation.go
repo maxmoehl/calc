@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"math"
+)
+
 type operation struct {
 	// operator contains the operation that should be carried out on the left and right operand
 	operator rune
@@ -9,14 +14,18 @@ type operation struct {
 	right interface{}
 }
 
-func (o operation) eval() float64 {
+func (o operation) eval() (float64, error) {
+	var err error
 	var left, right float64
 	if o.left == nil {
 		left = 0
 	} else if f, ok := o.left.(float64); ok {
 		left = f
 	} else {
-		left = o.left.(operation).eval()
+		left, err = o.left.(operation).eval()
+	}
+	if err != nil {
+		return math.NaN(), err
 	}
 
 	if o.right == nil {
@@ -24,18 +33,21 @@ func (o operation) eval() float64 {
 	} else if f, ok := o.right.(float64); ok {
 		right = f
 	} else {
-		right = o.left.(operation).eval()
+		right, err = o.left.(operation).eval()
+	}
+	if err != nil {
+		return math.NaN(), err
 	}
 	return calc(o.operator, left, right)
 }
 
-func calc(operator rune, left, right float64) float64 {
+func calc(operator rune, left, right float64) (float64, error) {
 	switch operator {
 	case '+':
-		return left + right
+		return left + right, nil
 	case '-':
-		return left - right
+		return left - right, nil
 	default:
-		panic("unknown operation: " + string(operator))
+		return math.NaN(), fmt.Errorf("unknown operation: '%s'", string(operator))
 	}
 }
