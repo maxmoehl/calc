@@ -6,39 +6,39 @@ import (
 )
 
 type operation struct {
-	// operator contains the operation that should be carried out on the left and right operand
-	operator rune
-	// left contains either a value (float64) or another Operation
-	left interface{}
-	// right contains either a value (float64) or another Operation
-	right interface{}
+	// Operator contains the operation that should be carried out on the Left and Right operand
+	Operator rune
+	// Left contains either a value (float64) or a pointer to another operation
+	Left interface{}
+	// Right contains either a value (float64) or a pointer to another operation
+	Right interface{}
 }
 
 func (o operation) eval() (float64, error) {
 	var err error
 	var left, right float64
-	if o.left == nil {
+	if o.Left == nil {
 		left = 0
-	} else if f, ok := o.left.(float64); ok {
+	} else if f, ok := o.Left.(float64); ok {
 		left = f
 	} else {
-		left, err = o.left.(operation).eval()
+		left, err = o.Left.(*operation).eval()
 	}
 	if err != nil {
 		return math.NaN(), err
 	}
 
-	if o.right == nil {
+	if o.Right == nil {
 		right = 0
-	} else if f, ok := o.right.(float64); ok {
+	} else if f, ok := o.Right.(float64); ok {
 		right = f
 	} else {
-		right, err = o.left.(operation).eval()
+		right, err = o.Right.(*operation).eval()
 	}
 	if err != nil {
 		return math.NaN(), err
 	}
-	return calc(o.operator, left, right)
+	return calc(o.Operator, left, right)
 }
 
 func calc(operator rune, left, right float64) (float64, error) {
@@ -47,6 +47,10 @@ func calc(operator rune, left, right float64) (float64, error) {
 		return left + right, nil
 	case '-':
 		return left - right, nil
+	case '*':
+		return left * right, nil
+	case '/':
+		return left / right, nil
 	default:
 		return math.NaN(), fmt.Errorf("unknown operation: '%s'", string(operator))
 	}
