@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// operation is a recursive struct that is the main building block of the abstract syntax tree.
 type operation struct {
 	// Operator contains the operation that should be carried out on the Left and Right operand
 	Operator rune
@@ -14,6 +15,7 @@ type operation struct {
 	Right interface{}
 }
 
+// eval evaluates an operation by first evaluating all sub-operations and evaluating itself.
 func (o operation) eval() (float64, error) {
 	var err error
 	var left, right float64
@@ -41,6 +43,7 @@ func (o operation) eval() (float64, error) {
 	return calc(o.Operator, left, right)
 }
 
+// calc carries out a operation, indicated by operator, on the two operands, left and right.
 func calc(operator rune, left, right float64) (float64, error) {
 	switch operator {
 	case '+':

@@ -52,7 +52,7 @@ func initOperation(tokens []token) (*operation, int, error) {
 
 func parseOperator(root *operation, tokens []token, i int) (*operation, error) {
 	if tokens[i-1].Type() == typeOperator {
-		return &operation{}, fmt.Errorf("expected literal after Operator but got Operator")
+		return nil, fmt.Errorf("expected literal after Operator but got Operator")
 	}
 	op := tokens[i].Value().(rune)
 	if op == '+' || op == '-' {
@@ -77,7 +77,7 @@ func parseOperator(root *operation, tokens []token, i int) (*operation, error) {
 		}
 		return root, nil
 	}
-	return &operation{}, fmt.Errorf("unknown operation '%s' at position %d", string(op), i)
+	return nil, fmt.Errorf("unknown operation '%s' at position %d", string(op), i)
 }
 
 func parseLiteral(root *operation, tokens []token, i int) (*operation, error) {
@@ -92,6 +92,9 @@ func parseLiteral(root *operation, tokens []token, i int) (*operation, error) {
 	return root, nil
 }
 
+// getRightLeaf returns the lowest operation by going down the right side of the
+// operations tree. It returns the operation where the right leaf is not another
+// operation.
 func getRightLeaf(root *operation) *operation {
 	if r, ok := root.Right.(*operation); ok {
 		return getRightLeaf(r)
