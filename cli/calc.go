@@ -13,10 +13,10 @@ import (
 )
 
 func main() {
-	res, err := calc.Eval(strings.Join(os.Args[1:], ""))
 	if _, found := os.LookupEnv("DEBUG"); found {
 		calc.SetDebug(true)
 	}
+	res, err := calc.Eval(strings.Join(os.Args[1:], ""))
 	if err != nil {
 		color.Red(err.Error())
 		os.Exit(1)
