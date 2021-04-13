@@ -6,30 +6,22 @@ import (
 	"strings"
 )
 
-var (
-	typeOperator = "operator"
-	typeLiteral  = "literal"
-)
-
-var validOperators = []rune{'+', '-'}
-var validLiteralRunes = []rune{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.'}
-
 func main() {
 	input := os.Args[1:]
 	tokens, err := tokenize(strings.Join(input, ""))
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(100)
+		os.Exit(1)
 	}
 	fmt.Println("the following instructions have been read by the lexer:")
 	for _, t := range tokens {
 		printToken(t)
 	}
 	var o operation
-	o, err = buildAST(tokens)
+	o, err = parse(tokens)
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(101)
+		os.Exit(1)
 	}
 	fmt.Printf("Result: %f\n", o.eval())
 }
