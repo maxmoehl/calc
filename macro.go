@@ -3,6 +3,7 @@ package calc
 import (
 	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 	"plugin"
 	"strings"
@@ -58,7 +59,11 @@ func init() {
 
 func getMacroFiles() ([]string, error) {
 	var macroFiles []string
-	err := filepath.WalkDir("$HOME/.calc", func(path string, d fs.DirEntry, err error) error {
+	home := os.Getenv("HOME")
+	err := filepath.WalkDir(filepath.Join(home, ".calc"), func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			panic(err.Error())
+		}
 		if d.IsDir() {
 			return nil
 		}
@@ -105,7 +110,6 @@ func loadMacros(p *plugin.Plugin) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%T\n", s)
 		f, ok = s.(*types.NewMacro)
 		if !ok {
 			return fmt.Errorf("function to create macros must be of type types.NewMacro")
