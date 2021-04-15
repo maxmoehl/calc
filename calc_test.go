@@ -41,6 +41,42 @@ func Test_run(t *testing.T) {
 			want:    8,
 			wantErr: false,
 		},
+		{
+			name:    "simple parentheses calculation",
+			arg:     "2*(3+4)",
+			want:    14,
+			wantErr: false,
+		},
+		{
+			name:    "test square root macro",
+			arg:     "1+sqrt{4}",
+			want:    3,
+			wantErr: false,
+		},
+		{
+			name:    "test power macro",
+			arg:     "pow{2,4}",
+			want:    16,
+			wantErr: false,
+		},
+		{
+			name:    "test empty expression",
+			arg:     "",
+			want:    0,
+			wantErr: false,
+		},
+		{
+			name:    "test complex expression",
+			arg:     "sqrt{4}*2+(3*pow{1+1,sqrt{4}})",
+			want:    16,
+			wantErr: false,
+		},
+		{
+			name:    "test parentheses only",
+			arg:     "(3)",
+			want:    3,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

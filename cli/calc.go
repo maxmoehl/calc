@@ -16,10 +16,17 @@ func main() {
 	if _, found := os.LookupEnv("DEBUG"); found {
 		calc.SetDebug(true)
 	}
+
+	if len(os.Args) == 1 {
+		fmt.Println("Usage: calc <mathematical expression>")
+		return
+	}
+
 	res, err := calc.Eval(strings.Join(os.Args[1:], ""))
 	if err != nil {
 		color.Red(err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("%f\n", res)
+
+	fmt.Printf("%g\n", res)
 }
