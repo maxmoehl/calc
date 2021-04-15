@@ -1,19 +1,14 @@
-package calc
+package main
 
 import (
 	"fmt"
 	"math"
+
+	"github.com/maxmoehl/calc/types"
 )
 
-func init() {
-	err := RegisterMacro("sqrt", NewSqrt)
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
 type Sqrt struct {
-	value Operation
+	value types.Operation
 }
 
 func (s *Sqrt) Eval() (float64, error) {
@@ -24,7 +19,9 @@ func (s *Sqrt) Eval() (float64, error) {
 	return math.Sqrt(f), nil
 }
 
-func NewSqrt(parameter ...Operation) (Macro, error) {
+var NewSqrt = types.NewMacro(newSqrt)
+
+func newSqrt(parameter []types.Operation) (types.Macro, error) {
 	if len(parameter) != 1 {
 		return nil, fmt.Errorf("expected one argument but got %d arguments", len(parameter))
 	}

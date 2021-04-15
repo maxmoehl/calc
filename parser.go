@@ -2,9 +2,11 @@ package calc
 
 import (
 	"fmt"
+
+	"github.com/maxmoehl/calc/types"
 )
 
-type Parser func(root Operation, tokens []Token, i int) (Operation, int, error)
+type Parser func(root types.Operation, tokens []Token, i int) (types.Operation, int, error)
 
 var parser map[string]Parser
 
@@ -19,8 +21,8 @@ func init() {
 // parse takes a list of tokens in the order they occur in the statement. It builds a abstract syntax tree
 // by chaining together operations in a recursive structure. Every Operation returned from parse is locked
 // because those operations are considered done and should not be modified.
-func parse(tokens []Token) (Operation, error) {
-	var root Operation
+func parse(tokens []Token) (types.Operation, error) {
+	var root types.Operation
 	var err error
 
 	for i := 0; i < len(tokens); i++ {
@@ -37,7 +39,7 @@ func parse(tokens []Token) (Operation, error) {
 	return root, nil
 }
 
-func parseOperator(root Operation, tokens []Token, i int) (Operation, int, error) {
+func parseOperator(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
 	if i > 0 && tokens[i-1].Type() == typeOperator {
 		return nil, i, fmt.Errorf("error: two consecutive operators at %d and %d", i-1, i)
 	}
@@ -79,7 +81,7 @@ func parseOperator(root Operation, tokens []Token, i int) (Operation, int, error
 	return nil, i, fmt.Errorf("unknown Operation '%s' at position %d", string(op), i)
 }
 
-func parseLiteral(root Operation, tokens []Token, i int) (Operation, int, error) {
+func parseLiteral(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
 	if i > 0 && tokens[i-1].Type() != typeOperator {
 		return nil, i, fmt.Errorf("expected operator before literal but got %s at position %d",
 			tokens[i-1].Type(), i)
@@ -95,7 +97,7 @@ func parseLiteral(root Operation, tokens []Token, i int) (Operation, int, error)
 	return root, i, nil
 }
 
-func parseControl(root Operation, tokens []Token, i int) (Operation, int, error) {
+func parseControl(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
 	if i > 0 && tokens[i-1].Type() != typeOperator {
 		return nil, i, fmt.Errorf("expected operator before parenthesis, but got %s, at position %d",
 			tokens[i-1].Type(), i-1)
@@ -125,7 +127,7 @@ func parseControl(root Operation, tokens []Token, i int) (Operation, int, error)
 	return root, i, nil
 }
 
-func parseMacro(root Operation, tokens []Token, i int) (Operation, int, error) {
+func parseMacro(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
 	if i > 0 && tokens[i-1].Type() != typeOperator {
 		return nil, i, fmt.Errorf("expected operator before identifiert but got %s", tokens[i-1].Type())
 	}
@@ -149,8 +151,8 @@ func parseMacro(root Operation, tokens []Token, i int) (Operation, int, error) {
 		return nil, i, err
 	}
 
-	var parameters []Operation
-	var op Operation
+	var parameters []types.Operation
+	var op types.Operation
 	for _, parameterTokens := range parametersTokens {
 		op, err = parse(parameterTokens)
 		if err != nil {
@@ -158,7 +160,7 @@ func parseMacro(root Operation, tokens []Token, i int) (Operation, int, error) {
 		}
 		parameters = append(parameters, op)
 	}
-	macro, err := macros[id](parameters...)
+	macro, err := macros[id](parameters)
 	if err != nil {
 		return nil, i, err
 	}
@@ -196,7 +198,7 @@ func getClosingPart(tokens []Token, i int, opening, closing rune) int {
 // unlocked Operation (the right leaf is either a locked Operation or a number).
 // We do not traverse into locked operations as they are considered a completed
 // unit and should not be modified, see parse for more details.
-func getRightLeaf(root Operation) *operation {
+func getRightLeaf(root types.Operation) *operation {
 	if root.Right() == nil || root.Right().Locked() {
 		return root.(*operation)
 	} else {

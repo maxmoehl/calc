@@ -3,27 +3,18 @@ package calc
 import (
 	"fmt"
 	"math"
-)
 
-type Operation interface {
-	Operator() rune
-	Left() Operation
-	Right() Operation
-	// Locked indicates whether or not it is possible to go down into the Operation.
-	// If false, Operator, Left and Right might return unexpected values.
-	Locked() bool
-	// Eval returns the value this operation resolves to, or an error if one occurs.
-	Eval() (float64, error)
-}
+	"github.com/maxmoehl/calc/types"
+)
 
 // operation is a recursive struct that is the main building block of the abstract syntax tree.
 type operation struct {
 	// operator contains the operation that should be carried out on the Left and Right operand
 	operator rune
 	// left contains either a value (float64) or a pointer to another Operation
-	left Operation
+	left types.Operation
 	// right contains either a value (float64) or a pointer to another Operation
-	right Operation
+	right types.Operation
 	// locked stores whether or not this Operation can be modified
 	locked bool
 }
@@ -32,11 +23,11 @@ func (o *operation) Operator() rune {
 	return o.operator
 }
 
-func (o *operation) Left() Operation {
+func (o *operation) Left() types.Operation {
 	return o.left
 }
 
-func (o *operation) Right() Operation {
+func (o *operation) Right() types.Operation {
 	return o.right
 }
 
@@ -75,11 +66,11 @@ func (l *literalOperation) Operator() rune {
 	return 'l'
 }
 
-func (l *literalOperation) Left() Operation {
+func (l *literalOperation) Left() types.Operation {
 	return nil
 }
 
-func (l *literalOperation) Right() Operation {
+func (l *literalOperation) Right() types.Operation {
 	return nil
 }
 

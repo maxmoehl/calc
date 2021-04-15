@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+
+	"github.com/maxmoehl/calc/types"
 )
 
 var debug = false
@@ -40,7 +42,7 @@ func Eval(input string) (float64, error) {
 		fmt.Printf("%v -> %v\n", '{', "{")
 		fmt.Printf("%v -> %v\n", '}', "}")
 	}
-	var o Operation
+	var o types.Operation
 	o, err = parse(tokens)
 	if err != nil {
 		return math.NaN(), err
@@ -79,7 +81,7 @@ func printToken(t Token) {
 	}
 }
 
-func getAST(in Operation) (res map[string]interface{}) {
+func getAST(in types.Operation) (res map[string]interface{}) {
 	if in == nil {
 		return map[string]interface{}{
 			"value": 0,
@@ -88,16 +90,7 @@ func getAST(in Operation) (res map[string]interface{}) {
 	res = map[string]interface{}{}
 	if in.Operator() == 'm' {
 		m := in.(*macroOperation).m
-		if sqrt, ok := m.(*Sqrt); ok {
-			res["_identifier"] = "sqrt"
-			res["value"] = getAST(sqrt.value)
-		} else if pow, ok := m.(*Pow); ok {
-			res["_identifier"] = "pow"
-			res["base"] = getAST(pow.base)
-			res["exp"] = getAST(pow.exp)
-		} else {
-			res["error"] = fmt.Sprintf("unknown macro: %+v\n", m)
-		}
+		fmt.Printf("%+v\n", m)
 	} else if in.Operator() == 'l' {
 		l := in.(*literalOperation)
 		res["value"] = l.value

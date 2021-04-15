@@ -1,19 +1,14 @@
-package calc
+package main
 
 import (
 	"fmt"
 	"math"
+
+	"github.com/maxmoehl/calc/types"
 )
 
-func init() {
-	err := RegisterMacro("pow", NewPow)
-	if err != nil {
-		panic(err.Error())
-	}
-}
-
 type Pow struct {
-	base, exp Operation
+	base, exp types.Operation
 }
 
 func (p *Pow) Eval() (float64, error) {
@@ -28,7 +23,9 @@ func (p *Pow) Eval() (float64, error) {
 	return math.Pow(base, exp), nil
 }
 
-func NewPow(parameter ...Operation) (Macro, error) {
+var NewPow = types.NewMacro(newPow)
+
+func newPow(parameter []types.Operation) (types.Macro, error) {
 	if len(parameter) != 2 {
 		return nil, fmt.Errorf("expected two arguments but got %d argument(s)", len(parameter))
 	}
