@@ -12,9 +12,9 @@ type operation struct {
 	// operator contains the operation that should be carried out on the Left and Right operand
 	operator rune
 	// left contains either a value (float64) or a pointer to another Operation
-	left types.Operation
+	left types.Node
 	// right contains either a value (float64) or a pointer to another Operation
-	right types.Operation
+	right types.Node
 	// locked stores whether or not this Operation can be modified
 	locked bool
 }
@@ -23,11 +23,11 @@ func (o *operation) Operator() rune {
 	return o.operator
 }
 
-func (o *operation) Left() types.Operation {
+func (o *operation) Left() types.Node {
 	return o.left
 }
 
-func (o *operation) Right() types.Operation {
+func (o *operation) Right() types.Node {
 	return o.right
 }
 
@@ -58,27 +58,15 @@ func (o *operation) Eval() (float64, error) {
 	return calc(o.Operator(), l, r)
 }
 
-type literalOperation struct {
+type literal struct {
 	value float64
 }
 
-func (l *literalOperation) Operator() rune {
-	return 'l'
-}
-
-func (l *literalOperation) Left() types.Operation {
-	return nil
-}
-
-func (l *literalOperation) Right() types.Operation {
-	return nil
-}
-
-func (l *literalOperation) Locked() bool {
+func (l *literal) Locked() bool {
 	return true
 }
 
-func (l *literalOperation) Eval() (float64, error) {
+func (l *literal) Eval() (float64, error) {
 	return l.value, nil
 }
 

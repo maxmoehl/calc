@@ -6,7 +6,7 @@ import (
 	"github.com/maxmoehl/calc/types"
 )
 
-type Parser func(root types.Operation, tokens []Token, i int) (types.Operation, int, error)
+type Parser func(root types.Node, tokens []Token, i int) (types.Node, int, error)
 
 var parser map[string]Parser
 
@@ -14,15 +14,15 @@ func init() {
 	parser = make(map[string]Parser)
 	parser[typeOperator] = parseOperator
 	parser[typeLiteral] = parseLiteral
-	parser[typeParentheses] = parseControl
+	parser[typeParenthesis] = parseControl
 	parser[typeIdentifier] = parseMacro
 }
 
 // parse takes a list of tokens in the order they occur in the statement. It builds a abstract syntax tree
 // by chaining together operations in a recursive structure. Every Operation returned from parse is locked
 // because those operations are considered done and should not be modified.
-func parse(tokens []Token) (types.Operation, error) {
-	var root types.Operation
+func parse(tokens []Token) (types.Node, error) {
+	var root types.Node
 	var err error
 
 	for i := 0; i < len(tokens); i++ {
@@ -33,117 +33,135 @@ func parse(tokens []Token) (types.Operation, error) {
 	}
 
 	if op, ok := root.(*operation); ok {
+		_, err = getRightOperationNil(root)
+		if err == nil {
+			return nil, fmt.Errorf("expression has trailing operand")
+		}
 		op.locked = true
 	}
 
 	return root, nil
 }
 
-func parseOperator(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
-	if i > 0 && tokens[i-1].Type() == typeOperator {
-		return nil, i, fmt.Errorf("error: two consecutive operators at %d and %d", i-1, i)
-	}
+// parseOperator handles tokens that are of typeOperator. The handling is
+// defined in parsePlusMinus and parseMulDiv
+func parseOperator(root types.Node, tokens []Token, i int) (types.Node, int, error) {
+	var err error
 	op := tokens[i].Value().(rune)
 	if op == '+' || op == '-' {
-		// If the operator is a addition or subtraction we shift the tree to the left.
-		// This leaves the right side of the root node empty for the next literal.
-		// If this is the first Token of the expression, left will be nil and the
-		// evaluation will assume it to be 0. This allows for negative signs
-		// (and even unnecessary plus signs) at the beginning of an expression.
-		return &operation{
-			operator: op,
-			left:     root,
-			right:    nil,
-		}, i, nil
+		root, err = parsePlusMinus(root, op)
+		return root, i, err
 	} else if op == '*' || op == '/' {
-		if root == nil {
-			return nil, i, fmt.Errorf("error: expression cannot start with %s", string(op))
-		}
-		if root.Locked() {
-			return &operation{
-				operator: op,
-				left:     root,
-			}, i, nil
-		}
-		// If the operator is a multiplication or division we shift the lowest value
-		// on the right to a new position one Operation lower to the left. The operator
-		// of the created Operation is given by the current Token. This leaves the lowest
-		// right leave empty for the next literal or Operation.
-		right := getRightLeaf(root)
-
-		right.right = &operation{
-			operator: op,
-			left:     right.Right(),
-			right:    nil,
-		}
-		return root, i, nil
+		root, err = parseMulDiv(root, op)
+		return root, i, err
 	}
 	return nil, i, fmt.Errorf("unknown Operation '%s' at position %d", string(op), i)
 }
 
-func parseLiteral(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
-	if i > 0 && tokens[i-1].Type() != typeOperator {
-		return nil, i, fmt.Errorf("expected operator before literal but got %s at position %d",
-			tokens[i-1].Type(), i)
+// parsePlusMinus parses the operators '+' and '-'. The tree gets shifted to the
+// left by replacing the root element with a new element and placing the root
+// element on the left side of the new element.
+// This leaves the right side of the root node empty for the next Node.
+// If this is the first Token of the expression, left will be nil since the
+// passed in root node is nil and the evaluation will assume it to be 0. This
+// allows for negative signs (and even unnecessary plus signs) at the
+// beginning of an expression.
+func parsePlusMinus(root types.Node, operator rune) (types.Node, error) {
+	// This covers a special case: If there is a root element and the root element
+	// is a operation, the right side needs to have a node. Otherwise we have two
+	// operators without a operand in between them.
+	if o, ok := root.(*operation); root != nil && ok && o.right == nil {
+		return nil, fmt.Errorf("expected right side of root node to be non-nil but got nil")
 	}
+	return &operation{
+		operator: operator,
+		left:     root,
+		right:    nil,
+	}, nil
+}
+
+// parseMulDiv parses the operators '*' and '/'. The lowest value on the right
+// that is Locked get shifted to a new position one Operation lower to the left.
+// The operator of the created Operation is given by the current Token. This
+// leaves the lowest right leave empty for the next Node. If the root element
+// is already locked create a new root node of type operation and place the
+// passed in root node on the left side of the newly created operation.
+func parseMulDiv(root types.Node, operator rune) (types.Node, error) {
 	if root == nil {
-		return &literalOperation{tokens[i].Value().(float64)}, i, nil
+		return nil, fmt.Errorf("error: expression cannot start with %s", string(operator))
 	}
-	r := getRightLeaf(root)
-	if r.Right() != nil {
-		return nil, i, fmt.Errorf("expected lowest right leave to be nil for this literal but got %v", r.Right())
+	if root.Locked() {
+		return &operation{
+			operator: operator,
+			left:     root,
+		}, nil
 	}
-	r.right = &literalOperation{tokens[i].Value().(float64)}
+
+	right, err := getRightOperationNonNil(root)
+	if err != nil {
+		return nil, err
+	}
+
+	right.right = &operation{
+		operator: operator,
+		left:     right.Right(),
+		right:    nil,
+	}
+	return root, nil
+}
+
+func parseLiteral(root types.Node, tokens []Token, i int) (types.Node, int, error) {
+	if root == nil {
+		return &literal{tokens[i].Value().(float64)}, i, nil
+	}
+	r, err := getRightOperationNil(root)
+	if err != nil {
+		return nil, i, err
+	}
+	r.right = &literal{tokens[i].Value().(float64)}
 	return root, i, nil
 }
 
-func parseControl(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
-	if i > 0 && tokens[i-1].Type() != typeOperator {
-		return nil, i, fmt.Errorf("expected operator before parenthesis, but got %s, at position %d",
-			tokens[i-1].Type(), i-1)
-	}
+func parseControl(root types.Node, tokens []Token, i int) (types.Node, int, error) {
 	// store first value inside of parenthesis
 	startIndex := i + 1
 	// find corresponding closing parenthesis and check if one is found
-	i = getClosingPart(tokens, i, '(', ')')
+	i, err := getClosingPart(tokens, i)
 	if i == -1 {
 		return nil, i, fmt.Errorf("missing closing parenthesis for opening parenthesis at position %d", startIndex)
 	}
 	// build the Operation for whatever was inside the parenthesis
-	subOperation, err := parse(tokens[startIndex:i])
+	op, err := parse(tokens[startIndex:i])
 	if err != nil {
 		return nil, i, err
 	}
 
 	if root == nil {
-		return subOperation, i , nil
+		return op, i , nil
 	}
 
-	right := getRightLeaf(root)
-	if right.Right() != nil {
-		return nil, i, fmt.Errorf("expected right leaf to be empty but got %v", right.Right())
+	right, err := getRightOperationNil(root)
+	if err != nil {
+		return nil, i, err
 	}
-	right.right = subOperation
+	right.right = op
 	return root, i, nil
 }
 
-func parseMacro(root types.Operation, tokens []Token, i int) (types.Operation, int, error) {
-	if i > 0 && tokens[i-1].Type() != typeOperator {
-		return nil, i, fmt.Errorf("expected operator before identifiert but got %s", tokens[i-1].Type())
-	}
+func parseMacro(root types.Node, tokens []Token, i int) (types.Node, int, error) {
 	id := tokens[i].Value().(string)
-	if macros[id] == nil {
+	if macroIndex[id] == nil {
 		return nil, i, fmt.Errorf("unknown macro identifier %s", id)
 	}
 	i++
-	if tokens[i].Type() != typeBraces || tokens[i].Value().(rune) != '{' {
+	if tokens[i].Type() != typeBrace || tokens[i].Value().(rune) != '{' {
 		return nil, i, fmt.Errorf("expected opening brace after identifier but got type %s, value '%v'",
 			tokens[i].Type(), tokens[i].Value())
 	}
 	startIndex := i + 1
-	i = getClosingPart(tokens, i, '{', '}')
-	if i == -1 {
-		return nil, i, fmt.Errorf("unable to find closing brace for opening brace located at %d", startIndex)
+	i, err := getClosingPart(tokens, i)
+	if err != nil {
+		return nil, i, err
 	}
 
 	parametersTokens, err := splitByComma(tokens[startIndex:i])
@@ -151,8 +169,8 @@ func parseMacro(root types.Operation, tokens []Token, i int) (types.Operation, i
 		return nil, i, err
 	}
 
-	var parameters []types.Operation
-	var op types.Operation
+	var parameters []types.Node
+	var op types.Node
 	for _, parameterTokens := range parametersTokens {
 		op, err = parse(parameterTokens)
 		if err != nil {
@@ -160,7 +178,7 @@ func parseMacro(root types.Operation, tokens []Token, i int) (types.Operation, i
 		}
 		parameters = append(parameters, op)
 	}
-	macro, err := macros[id](parameters)
+	macro, err := macroIndex[id](parameters)
 	if err != nil {
 		return nil, i, err
 	}
@@ -169,40 +187,87 @@ func parseMacro(root types.Operation, tokens []Token, i int) (types.Operation, i
 		return &macroOperation{macro}, i, nil
 	}
 
-	rightLeave := getRightLeaf(root)
+	rightLeave, err := getRightOperationNil(root)
+	if err != nil {
+		return nil, i, err
+	}
 	rightLeave.right = &macroOperation{macro}
 	return root, i , nil
 }
 
 // getClosingPart tries to find the rune passed in as closing by ignoring all nested
 // section delimited by opening and closed parameters.
-func getClosingPart(tokens []Token, i int, opening, closing rune) int {
+func getClosingPart(tokens []Token, i int) (int, error) {
+	var opening, closing rune
+	t := tokens[i].Type()
+	if t == typeParenthesis || t == typeBrace {
+		opening = validRunes[t][0]
+		closing = validRunes[t][1]
+	} else {
+		return -1, fmt.Errorf("unknown control combination %s", t)
+	}
 	parentheses := 1
 	for i++; i < len(tokens); i++ {
-		if tokens[i].Type() == typeParentheses || tokens[i].Type() == typeBraces {
+		if tokens[i].Type() == typeParenthesis || tokens[i].Type() == typeBrace {
 			if tokens[i].Value().(rune) == opening {
 				parentheses++
 			} else if tokens[i].Value().(rune) == closing {
 				parentheses--
 			}
 			if parentheses == 0 {
-				return i
+				return i, nil
 			}
 		}
 	}
-	return -1
+	return -1, fmt.Errorf("missing at least one closing part of control %s", t)
 }
 
-// getRightLeaf returns the lowest Operation by going down the right side of the
-// operations tree. It returns the Operation where the right leaf is not another
-// unlocked Operation (the right leaf is either a locked Operation or a number).
+// getRightOperationNil searches the lowest operation on the right and expects that
+// operation is nil on the right side.
+func getRightOperationNil(n types.Node) (*operation, error) {
+	o, err := getRightOperation(n)
+	if err != nil {
+		return nil, err
+	}
+	if o.right != nil {
+		return nil, fmt.Errorf("lowest operation on the right side has no nil right side: %+v", o.right)
+	}
+	return o, nil
+}
+
+// getRightOperationNonNil is the corresponding function to getRightOperationNil. It
+// searches for the lowest operation on the right and expects the right side to be
+// nil. If that is not the case an error is returned
+func getRightOperationNonNil(n types.Node) (*operation, error) {
+	o, err := getRightOperation(n)
+	if err != nil {
+		return nil, err
+	}
+	if o.right == nil {
+		return nil, fmt.Errorf("lowest operation on the right side is nil")
+	}
+	return o, nil
+}
+
+// getRightOperation returns the lowest operation by going down the right side of the
+// operations tree. It returns the operation where the right leaf is not another
+// unlocked operation (the right leaf is either a locked operation, a number or nil).
+// Before passing a node it should be checked if that node is locked. If a locked node
+// is passed in or the node is not of type operation, nil is returned.
 // We do not traverse into locked operations as they are considered a completed
 // unit and should not be modified, see parse for more details.
-func getRightLeaf(root types.Operation) *operation {
-	if root.Right() == nil || root.Right().Locked() {
-		return root.(*operation)
+func getRightOperation(n types.Node) (*operation, error) {
+	if n.Locked() {
+		return nil, fmt.Errorf("received locked Node but expected unlocked Node")
+	}
+	o, ok := n.(*operation)
+	if !ok {
+		return nil, fmt.Errorf("expected Node of type operation but got %T", n)
+	}
+	if o.Right() == nil || o.Right().Locked() {
+		return o, nil
 	} else {
-		return getRightLeaf(root.Right())
+		return getRightOperation(o.Right())
 	}
 }
 
@@ -211,6 +276,7 @@ func getRightLeaf(root types.Operation) *operation {
 func splitByComma(tokens []Token) ([][]Token, error) {
 	var t Token
 	var res [][]Token
+	var err error
 	currentStart := 0
 	for i := 0; i < len(tokens); i++ {
 		t = tokens[i]
@@ -220,13 +286,16 @@ func splitByComma(tokens []Token) ([][]Token, error) {
 			res = append(res, tokens[currentStart:i])
 			currentStart = i + 1
 		}
-		if t.Type() == typeBraces {
-			// If we find a opening brace we skip to the end of it to avoid the commas that this
-			// macro might have.
+		if t.Type() == typeBrace {
+			// If we find a opening brace we skip to the end of it to avoid the commas that any
+			// nested macro might have.
 			if t.Value().(rune) == '}' {
 				return nil, fmt.Errorf("unexpected closing brace")
 			}
-			i = getClosingPart(tokens, i, '{', '}')
+			i, err = getClosingPart(tokens, i)
+			if err != nil {
+				return nil, err
+			}
 		}
 		if i == len(tokens) - 1 {
 			// if we are at the end of the section we group everything we have

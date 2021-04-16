@@ -12,74 +12,10 @@ type token struct {
 	value     interface{}
 }
 
-type operator struct {
-	value rune
+func (t token) Type() string {
+	return t.tokenType
 }
 
-func (o operator) Type() string {
-	return typeOperator
-}
-
-func (o operator) Value() interface{} {
-	return o.value
-}
-
-type literal struct {
-	value float64
-}
-
-func (l literal) Type() string {
-	return typeLiteral
-}
-
-func (l literal) Value() interface{} {
-	return l.value
-}
-
-type parenthesis struct {
-	value rune
-}
-
-func (c parenthesis) Type() string {
-	return typeParentheses
-}
-
-func (c parenthesis) Value() interface{} {
-	return c.value
-}
-
-type brace struct {
-	value rune
-}
-
-func (b brace) Type() string {
-	return typeBraces
-}
-
-func (b brace) Value() interface{} {
-	return b.value
-}
-
-type identifier struct {
-	value string
-}
-
-func (i identifier) Type() string {
-	return typeIdentifier
-}
-
-func (i identifier) Value() interface{} {
-	return i.value
-}
-
-type comma struct {
-	value rune
-}
-
-func (c comma) Type() string {
-	return typeComma
-}
-
-func (c comma) Value() interface{} {
-	return c.value
+func (t token) Value() interface{} {
+	return t.value
 }

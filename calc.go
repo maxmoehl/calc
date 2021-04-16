@@ -2,7 +2,6 @@
 package calc
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 
@@ -42,15 +41,15 @@ func Eval(input string) (float64, error) {
 		fmt.Printf("%v -> %v\n", '{', "{")
 		fmt.Printf("%v -> %v\n", '}', "}")
 	}
-	var o types.Operation
+	var o types.Node
 	o, err = parse(tokens)
 	if err != nil {
 		return math.NaN(), err
 	}
-	if debug {
-		b, _ := json.MarshalIndent(getAST(o), "", "  ")
-		fmt.Println(string(b))
-	}
+	// if debug {
+	// 	b, _ := json.MarshalIndent(getAST(o), "", "  ")
+	// 	fmt.Println(string(b))
+	// }
 
 	// evaluate result
 	if o == nil {
@@ -70,9 +69,9 @@ func printToken(t Token) {
 		fallthrough
 	case typeComma:
 		fallthrough
-	case typeBraces:
+	case typeBrace:
 		fallthrough
-	case typeParentheses:
+	case typeParenthesis:
 		fmt.Printf("\t%s\t%s\n", t.Type(), string(t.Value().(rune)))
 	case typeLiteral:
 		fmt.Printf("\t%s\t%g\n", t.Type(), t.Value().(float64))
@@ -81,23 +80,23 @@ func printToken(t Token) {
 	}
 }
 
-func getAST(in types.Operation) (res map[string]interface{}) {
-	if in == nil {
-		return map[string]interface{}{
-			"value": 0,
-		}
-	}
-	res = map[string]interface{}{}
-	if in.Operator() == 'm' {
-		m := in.(*macroOperation).m
-		fmt.Printf("%+v\n", m)
-	} else if in.Operator() == 'l' {
-		l := in.(*literalOperation)
-		res["value"] = l.value
-	} else {
-		res["_operand"] = string(in.Operator())
-		res["left"] = getAST(in.Left())
-		res["right"] = getAST(in.Right())
-	}
-	return
-}
+// func getAST(in types.Node) (res map[string]interface{}) {
+// 	if in == nil {
+// 		return map[string]interface{}{
+// 			"value": 0,
+// 		}
+// 	}
+// 	res = map[string]interface{}{}
+// 	if in.Operator() == 'm' {
+// 		m := in.(*macroOperation).m
+// 		fmt.Printf("%+v\n", m)
+// 	} else if in.Operator() == 'l' {
+// 		l := in.(*literal)
+// 		res["value"] = l.value
+// 	} else {
+// 		res["_operand"] = string(in.Operator())
+// 		res["left"] = getAST(in.Left())
+// 		res["right"] = getAST(in.Right())
+// 	}
+// 	return
+// }

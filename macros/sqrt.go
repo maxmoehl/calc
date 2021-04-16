@@ -8,7 +8,7 @@ import (
 )
 
 type Sqrt struct {
-	value types.Operation
+	value types.Node
 }
 
 func (s *Sqrt) Eval() (float64, error) {
@@ -21,7 +21,7 @@ func (s *Sqrt) Eval() (float64, error) {
 
 var NewSqrt = types.NewMacro(newSqrt)
 
-func newSqrt(parameter []types.Operation) (types.Macro, error) {
+func newSqrt(parameter []types.Node) (types.Macro, error) {
 	if len(parameter) != 1 {
 		return nil, fmt.Errorf("expected one argument but got %d arguments", len(parameter))
 	}

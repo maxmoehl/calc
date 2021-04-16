@@ -8,7 +8,7 @@ import (
 )
 
 type Pow struct {
-	base, exp types.Operation
+	base, exp types.Node
 }
 
 func (p *Pow) Eval() (float64, error) {
@@ -25,7 +25,7 @@ func (p *Pow) Eval() (float64, error) {
 
 var NewPow = types.NewMacro(newPow)
 
-func newPow(parameter []types.Operation) (types.Macro, error) {
+func newPow(parameter []types.Node) (types.Macro, error) {
 	if len(parameter) != 2 {
 		return nil, fmt.Errorf("expected two arguments but got %d argument(s)", len(parameter))
 	}
