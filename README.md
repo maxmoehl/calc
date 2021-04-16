@@ -150,7 +150,7 @@ The function to create a new macro needs to implement the `types.NewMacro` inter
 has the following signature:
 
 ```go
-type NewMacro func(parameter []Operation) (Macro, error)
+type NewMacro func(parameter []Node) (Macro, error)
 ```
 
 Inside this function basic validation should be done to ensure correct number of arguments.
@@ -162,7 +162,7 @@ type Macro interface {
 }
 ```
 
-The `Eval` function is used to evaluate the macro. Since the parameters are `types.Operation`s
+The `Eval` function is used to evaluate the macro. Since the parameters are `types.Node`s
 you first have to evaluate all parameters and use the results to do your own calculation. If
 any errors occur while evaluating the parameters it is recommended to return `math.NaN()` and
 the encountered error without modifying the error or returning your own.
