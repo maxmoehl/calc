@@ -8,8 +8,6 @@ import (
 	"strings"
 
 	"github.com/maxmoehl/calc"
-
-	"github.com/fatih/color"
 )
 
 func main() {
@@ -24,7 +22,7 @@ func main() {
 
 	res, err := calc.Eval(strings.Join(os.Args[1:], ""))
 	if err != nil {
-		color.Red(err.Error())
+		fmt.Println("\x1b[31m" + err.Error())
 		os.Exit(1)
 	}
 
