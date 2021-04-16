@@ -12,6 +12,20 @@ with cgo enabled, the plugin loading mechanism is only enabled for those platfor
 achieved by setting the build directive in `plugins.go`. Any code in that file will only be
 included if the target platform is listed in this directive.
 
+# Installation
+
+Currently, no pre-built executables are available but building it is easy since there are zero
+dependencies (although that wouldn't be a problem anyways). The application was built for go
+1.16, and it is recommended to have at least this version. After installing go form the
+official website, using the application only takes one more command:
+
+```
+go install github.com/maxmoehl/calc/cli@latest
+```
+
+Depending on your setup you might have to add the `$GOBIN` directory to your path variable.
+By default, it is `$HOME/go/bin`. If you want to use macros see section [Macros](#macros)
+
 # Configuration
 
 The plugin in home can be overridden by setting the environment variable `CALC_PLUGIN_DIR`.
