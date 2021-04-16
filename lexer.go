@@ -16,6 +16,7 @@ var (
 	typeIdentifier  = "identifier"
 )
 
+// validRunes maps the type identifier for each allowed type to the runes it can consist of
 var validRunes = map[string][]rune{
 	typeOperator:    {'+', '-', '*', '/'},
 	typeParenthesis: {'(', ')'},
@@ -26,6 +27,10 @@ var validRunes = map[string][]rune{
 	typeIdentifier:  {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'},
 }
 
+// tokenize takes a string and creates a list of Token. In most cases each token
+// consists of the type identifier and the rune that was detected. Literals and
+// identifier have to be read by the external functions readIdentifier and
+// readLiteral.
 func tokenize(input string) ([]Token, error) {
 	symbols := []rune(input)
 	var t Token
@@ -63,6 +68,9 @@ func tokenize(input string) ([]Token, error) {
 	return tokens, nil
 }
 
+// readLiteral takes all symbols and the current position of the index. It then reads all
+// symbols that belong to the current literal and returns the last index of the literal,
+// a Token or an error.
 func readLiteral(symbols []rune, i int) (Token, int, error) {
 	start := i
 	for ; i < len(symbols) && isOfType(symbols[i], typeLiteral); i++ {
@@ -75,6 +83,9 @@ func readLiteral(symbols []rune, i int) (Token, int, error) {
 	return t, i - 1, nil
 }
 
+// readLiteral takes all symbols and the current position of the index. It then reads all
+// symbols that belong to the current identifier and returns the last index of the literal,
+// a Token or an error.
 func readIdentifier(symbols []rune, i int) (Token, int) {
 	start := i
 	for ; i < len(symbols) && isOfType(symbols[i], typeIdentifier); i++ {
@@ -107,10 +118,13 @@ func convertLiteral(symbols []rune) (Token, error) {
 	return token{typeLiteral, v}, nil
 }
 
+// isOfType is a convenience function to check if a symbol is a valid symbol for
+// the given type.
 func isOfType(symbol rune, t string) bool {
 	return runeSliceContains(validRunes[t], symbol)
 }
 
+// runeSliceContains checks if a runs slice contains a certain rune.
 func runeSliceContains(s []rune, r rune) bool {
 	for _, sr := range s {
 		if sr == r {

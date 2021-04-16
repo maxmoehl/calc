@@ -25,12 +25,12 @@ func (p *Pow) Eval() (float64, error) {
 
 var NewPow = types.NewMacro(newPow)
 
-func newPow(parameter []types.Node) (types.Macro, error) {
-	if len(parameter) != 2 {
-		return nil, fmt.Errorf("expected two arguments but got %d argument(s)", len(parameter))
+func newPow(parameters []types.Node) (types.Macro, error) {
+	if len(parameters) != 2 {
+		return nil, fmt.Errorf("expected two arguments but got %d argument(s)", len(parameters))
 	}
 	return &Pow{
-		base: parameter[0],
-		exp: parameter[1],
+		base: parameters[0],
+		exp:  parameters[1],
 	}, nil
 }

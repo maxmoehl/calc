@@ -1,4 +1,4 @@
-// This application is the cli version of calc. It serves as a basic wrapper to
+// This application is the cli version of github.com/maxmoehl/calc. It serves as a basic wrapper to
 // enable the use of calc as a package in an application.
 package main
 
@@ -22,6 +22,7 @@ func main() {
 
 	if *interactive {
 		runInteractive()
+		return
 	}
 
 	if len(os.Args) == 1 {
@@ -33,7 +34,7 @@ func main() {
 		fmt.Println("    calc -interactive")
 		fmt.Println()
 		fmt.Println("Loaded macros:")
-		fmt.Println("  " + calc.GetLoadedMacros())
+		fmt.Println("  " + strings.Join(calc.GetLoadedMacros(), ", "))
 		return
 	}
 
@@ -46,6 +47,8 @@ func main() {
 	fmt.Printf("%g\n", res)
 }
 
+// runInteractive launches the interactive mode. It can be exited by pressing CTRL + C
+// or typing `exit` and pressing enter.
 func runInteractive() {
 	s := bufio.NewScanner(os.Stdin)
 	var err error
@@ -68,6 +71,8 @@ func runInteractive() {
 	}
 }
 
+// printError takes an error and prints the value of error.Error() in red to the
+// console, followed by a new line.
 func printError(err error) {
 	fmt.Println("\x1b[31m" + err.Error() + "\x1b[0m")
 }

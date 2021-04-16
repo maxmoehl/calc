@@ -21,11 +21,11 @@ func (s *Sqrt) Eval() (float64, error) {
 
 var NewSqrt = types.NewMacro(newSqrt)
 
-func newSqrt(parameter []types.Node) (types.Macro, error) {
-	if len(parameter) != 1 {
-		return nil, fmt.Errorf("expected one argument but got %d arguments", len(parameter))
+func newSqrt(parameters []types.Node) (types.Macro, error) {
+	if len(parameters) != 1 {
+		return nil, fmt.Errorf("expected one argument but got %d arguments", len(parameters))
 	}
 	return &Sqrt{
-		value: parameter[0],
+		value: parameters[0],
 	}, nil
 }

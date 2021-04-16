@@ -46,18 +46,6 @@ func (o *operation) Eval() (float64, error) {
 	return calc(o.operator, l, r)
 }
 
-type literal struct {
-	value float64
-}
-
-func (l *literal) Locked() bool {
-	return true
-}
-
-func (l *literal) Eval() (float64, error) {
-	return l.value, nil
-}
-
 // calc carries out a Operation, indicated by operator, on the two operands, left and right.
 func calc(operator rune, left, right float64) (float64, error) {
 	switch operator {

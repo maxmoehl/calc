@@ -15,6 +15,10 @@ func SetDebug(b bool) {
 	debug = b
 }
 
+// Eval is the main entry point for the calc package. It takes a single string
+// as input and runs the lexer and parser to create a abstract syntax tree that
+// can be evaluated to get the final result. If any errors occur math.Nan and
+// the error are returned.
 func Eval(input string) (float64, error) {
 	// run lexer
 	tokens, err := tokenize(input)
@@ -64,6 +68,7 @@ func Eval(input string) (float64, error) {
 	return res, nil
 }
 
+// printToken prints a single token in its correct string representation.
 func printToken(t Token) {
 	switch t.Type() {
 	case typeOperator:
@@ -81,6 +86,8 @@ func printToken(t Token) {
 	}
 }
 
+// getTypeStandardLength takes a type and appends as many spaces to it to get
+// the same length as the longest type. Currently the length is 11.
 func getTypeStandardLength(t string) string {
 	for len(t) < 11 {
 		t += " "
@@ -88,6 +95,10 @@ func getTypeStandardLength(t string) string {
 	return t
 }
 
+// getAST is a function that tries to uncover as much information as possible
+// from the abstract syntax tree and stores it in a map. That map can then be
+// printed to give a detailed overview on what the current operation looks like
+// in memory.
 func getAST(in types.Node) (res map[string]interface{}) {
 	if in == nil {
 		return map[string]interface{}{
