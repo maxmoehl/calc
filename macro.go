@@ -8,14 +8,14 @@ import (
 // a macro for that identifier.
 var macroIndex map[string]types.NewMacro
 
-type macroOperation struct {
+type macro struct {
 	m types.Macro
 }
 
-func (m *macroOperation) Locked() bool {
+func (m *macro) Locked() bool {
 	return true
 }
 
-func (m *macroOperation) Eval() (float64, error) {
+func (m *macro) Eval() (float64, error) {
 	return m.m.Eval()
 }

@@ -178,20 +178,20 @@ func parseMacro(root types.Node, tokens []Token, i int) (types.Node, int, error)
 		}
 		parameters = append(parameters, op)
 	}
-	macro, err := macroIndex[id](parameters)
+	m, err := macroIndex[id](parameters)
 	if err != nil {
 		return nil, i, err
 	}
 
 	if root == nil {
-		return &macroOperation{macro}, i, nil
+		return &macro{m}, i, nil
 	}
 
 	rightLeave, err := getRightOperationNil(root)
 	if err != nil {
 		return nil, i, err
 	}
-	rightLeave.right = &macroOperation{macro}
+	rightLeave.right = &macro{m}
 	return root, i , nil
 }
 

@@ -7,13 +7,13 @@ import (
 )
 
 var (
-	typeOperator    = "operator   :"
-	typeParenthesis = "parenthesis:"
-	typeBrace       = "brace      :"
-	typeComma       = "comma      :"
-	typeWhitespace  = "whitespace :"
-	typeLiteral     = "literal    :"
-	typeIdentifier  = "identifier :"
+	typeOperator    = "operator"
+	typeParenthesis = "parenthesis"
+	typeBrace       = "brace"
+	typeComma       = "comma"
+	typeWhitespace  = "whitespace"
+	typeLiteral     = "literal"
+	typeIdentifier  = "identifier"
 )
 
 var validRunes = map[string][]rune{

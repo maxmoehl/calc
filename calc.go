@@ -2,6 +2,7 @@
 package calc
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 
@@ -46,10 +47,10 @@ func Eval(input string) (float64, error) {
 	if err != nil {
 		return math.NaN(), err
 	}
-	// if debug {
-	// 	b, _ := json.MarshalIndent(getAST(o), "", "  ")
-	// 	fmt.Println(string(b))
-	// }
+	if debug {
+		b, _ := json.MarshalIndent(getAST(o), "", "  ")
+		fmt.Println(string(b))
+	}
 
 	// evaluate result
 	if o == nil {
@@ -72,31 +73,39 @@ func printToken(t Token) {
 	case typeBrace:
 		fallthrough
 	case typeParenthesis:
-		fmt.Printf("\t%s\t%s\n", t.Type(), string(t.Value().(rune)))
+		fmt.Printf("\t%s\t%s\n", getTypeStandardLength(t.Type()), string(t.Value().(rune)))
 	case typeLiteral:
-		fmt.Printf("\t%s\t%g\n", t.Type(), t.Value().(float64))
+		fmt.Printf("\t%s\t%g\n", getTypeStandardLength(t.Type()), t.Value().(float64))
 	case typeIdentifier:
-		fmt.Printf("\t%s\t%s\n", t.Type(), t.Value().(string))
+		fmt.Printf("\t%s\t%s\n", getTypeStandardLength(t.Type()), t.Value().(string))
 	}
 }
 
-// func getAST(in types.Node) (res map[string]interface{}) {
-// 	if in == nil {
-// 		return map[string]interface{}{
-// 			"value": 0,
-// 		}
-// 	}
-// 	res = map[string]interface{}{}
-// 	if in.Operator() == 'm' {
-// 		m := in.(*macroOperation).m
-// 		fmt.Printf("%+v\n", m)
-// 	} else if in.Operator() == 'l' {
-// 		l := in.(*literal)
-// 		res["value"] = l.value
-// 	} else {
-// 		res["_operand"] = string(in.Operator())
-// 		res["left"] = getAST(in.Left())
-// 		res["right"] = getAST(in.Right())
-// 	}
-// 	return
-// }
+func getTypeStandardLength(t string) string {
+	for len(t) < 11 {
+		t += " "
+	}
+	return t
+}
+
+func getAST(in types.Node) (res map[string]interface{}) {
+	if in == nil {
+		return map[string]interface{}{
+			"value": "nil (=0)",
+		}
+	}
+	res = map[string]interface{}{}
+	if m, ok := in.(*macro); ok {
+		res["macro"] = map[string]string{
+			"_type": fmt.Sprintf("%T", m.m),
+			"representation": fmt.Sprintf("%+v", m.m),
+		}
+	} else if l, ok := in.(*literal); ok {
+		res["value"] = l.value
+	} else if o, ok := in.(*operation); ok {
+		res["_operand"] = string(o.operator)
+		res["left"] = getAST(o.left)
+		res["right"] = getAST(o.right)
+	}
+	return
+}
