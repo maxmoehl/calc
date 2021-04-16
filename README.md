@@ -121,7 +121,7 @@ To enable the default macros do the following:
 2. Create the directory `$HOME/.calc` if it does not exist: `mkdir $HOME/.calc`
 3. Copy the built file to the newly created directory: `mv macros.so $HOME/.calc/macros.so`
 
-## Invoking plugins
+## Invoking macros
 
 Plugins can be invoked by their identifier and braces containing the parameters delimited by
 commas:
