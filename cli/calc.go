@@ -3,6 +3,8 @@
 package main
 
 import (
+	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -15,16 +17,57 @@ func main() {
 		calc.SetDebug(true)
 	}
 
+	interactive := flag.Bool("interactive", false, "start interactive mode")
+	flag.Parse()
+
+	if *interactive {
+		runInteractive()
+	}
+
 	if len(os.Args) == 1 {
-		fmt.Println("Usage: calc <mathematical expression>")
+
+		fmt.Println("Usage:")
+		fmt.Println("  either execute a single calculation:")
+		fmt.Println("    calc <mathematical expression>")
+		fmt.Println("  or start the interactive mode:")
+		fmt.Println("    calc -interactive")
+		fmt.Println()
+		fmt.Println("Loaded macros:")
+		fmt.Println("  " + calc.GetLoadedMacros())
 		return
 	}
 
 	res, err := calc.Eval(strings.Join(os.Args[1:], ""))
 	if err != nil {
-		fmt.Println("\x1b[31m" + err.Error())
+		printError(err)
 		os.Exit(1)
 	}
 
 	fmt.Printf("%g\n", res)
+}
+
+func runInteractive() {
+	s := bufio.NewScanner(os.Stdin)
+	var err error
+	var in string
+	var f float64
+	for {
+		fmt.Print("> ")
+		s.Scan()
+		in = s.Text()
+		if in == "exit" {
+			fmt.Println("bye")
+			os.Exit(0)
+		}
+		f, err = calc.Eval(in)
+		if err != nil {
+			printError(err)
+			continue
+		}
+		fmt.Printf("%g\n", f)
+	}
+}
+
+func printError(err error) {
+	fmt.Println("\x1b[31m" + err.Error() + "\x1b[0m")
 }

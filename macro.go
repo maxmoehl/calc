@@ -19,3 +19,15 @@ func (m *macro) Locked() bool {
 func (m *macro) Eval() (float64, error) {
 	return m.m.Eval()
 }
+
+func GetLoadedMacros() string {
+	m := ""
+	for n := range macroIndex {
+		if len(m) == 0 {
+			m += n
+		} else {
+			m += ", " + n
+		}
+	}
+	return m
+}
