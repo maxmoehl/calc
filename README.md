@@ -7,10 +7,10 @@ calculating the square root and power.
 
 ## Constraints
 
-Since the plugin package only supports macOS, FreeBSD and Linux with cgo enabled, the plugin
-loading mechanism is only enabled for those platforms. This is achieved by setting the build
-directive in `plugins.go`. Any code in that file will only be included if the target platform
-is listed in this directive.
+Since the [plugin](https://pkg.go.dev/plugin) package only supports macOS, FreeBSD and Linux
+with cgo enabled, the plugin loading mechanism is only enabled for those platforms. This is
+achieved by setting the build directive in `plugins.go`. Any code in that file will only be
+included if the target platform is listed in this directive.
 
 # Configuration
 
