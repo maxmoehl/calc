@@ -104,7 +104,7 @@ func parseMulDiv(root types.Node, operator rune) (types.Node, error) {
 
 	right.right = &operation{
 		operator: operator,
-		left:     right.Right(),
+		left:     right.right,
 		right:    nil,
 	}
 	return root, nil
@@ -264,10 +264,10 @@ func getRightOperation(n types.Node) (*operation, error) {
 	if !ok {
 		return nil, fmt.Errorf("expected Node of type operation but got %T", n)
 	}
-	if o.Right() == nil || o.Right().Locked() {
+	if o.right == nil || o.right.Locked() {
 		return o, nil
 	} else {
-		return getRightOperation(o.Right())
+		return getRightOperation(o.right)
 	}
 }
 

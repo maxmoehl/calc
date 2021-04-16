@@ -9,26 +9,14 @@ import (
 
 // operation is a recursive struct that is the main building block of the abstract syntax tree.
 type operation struct {
-	// operator contains the operation that should be carried out on the Left and Right operand
+	// operator contains the operation that should be carried out on the left and right operand
 	operator rune
-	// left contains either a value (float64) or a pointer to another Operation
+	// left contains either a value (float64) or a pointer to a Node
 	left types.Node
-	// right contains either a value (float64) or a pointer to another Operation
+	// right contains either a value (float64) or a pointer to a Node
 	right types.Node
-	// locked stores whether or not this Operation can be modified
+	// locked stores whether or not this operation can be modified
 	locked bool
-}
-
-func (o *operation) Operator() rune {
-	return o.operator
-}
-
-func (o *operation) Left() types.Node {
-	return o.left
-}
-
-func (o *operation) Right() types.Node {
-	return o.right
 }
 
 func (o *operation) Locked() bool {
@@ -39,23 +27,23 @@ func (o *operation) Locked() bool {
 func (o *operation) Eval() (float64, error) {
 	var l, r float64
 	var err error
-	if o.Left() == nil {
+	if o.left == nil {
 		l = 0
 	} else {
-		l, err = o.Left().Eval()
+		l, err = o.left.Eval()
 	}
 	if err != nil {
 		return math.NaN(), err
 	}
-	if o.Right() == nil {
+	if o.right == nil {
 		r = 0
 	} else {
-		r, err = o.Right().Eval()
+		r, err = o.right.Eval()
 	}
 	if err != nil {
 		return math.NaN(), err
 	}
-	return calc(o.Operator(), l, r)
+	return calc(o.operator, l, r)
 }
 
 type literal struct {
