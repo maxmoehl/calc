@@ -24,6 +24,50 @@ the executable:
 $ DEBUG=1 calc "1+1"
 ```
 
+# Usage
+
+It can either be used to calculate a single expression:
+```
+$ calc "1+1"
+2
+```
+or launched in interactive mode to execute multiple expressions:
+```
+$ calc -interactive
+> 1+1
+2
+> pow{2,2}
+4
+> _
+```
+Type `exit` or press CTRL+C to exit
+
+If executed without any arguments, a little help section gets printed:
+```
+$ calc
+Usage:
+  either execute a single calculation:
+    calc <mathematical expression>
+  or start the interactive mode:
+    calc -interactive
+
+Loaded macros:
+  sqrt, pow
+```
+
+Plans for the **future**: Allow recent results to be reused in calculations. This would allow
+for more flexibility in calculation, i.e.:
+```
+$ calc -interactive
+> 1
+1
+> $0 + 1
+2
+> $0 + 1
+3
+> _
+```
+
 # Syntax
 
 ## Extended Backus–Naur form
